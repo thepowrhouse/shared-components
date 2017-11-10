@@ -1,4 +1,4 @@
-# FPOS Shared Components
+# FSD Shared Components
 
 Add shared components to your Angular project as a git submodule.
 
