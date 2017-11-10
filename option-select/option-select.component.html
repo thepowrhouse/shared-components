@@ -1,0 +1,7 @@
+<div class="container" *ngIf="visible" (click)="dismiss()">
+  <div class="list-container">
+    <div class="option" *ngFor="let option of options" (click)="selection(option)">
+      {{option}}
+    </div>
+  </div>
+</div>
