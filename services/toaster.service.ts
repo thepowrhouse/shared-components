@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Rx';
 import { Subject } from 'rxjs/Subject';
-import { Observer } from 'rxjs/Observer';
 
 export interface IToast {
 	title: string;

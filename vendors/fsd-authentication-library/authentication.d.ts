@@ -56,7 +56,7 @@ declare class FSDAuthentication {
     readonly access_token: string;
     readonly token: IToken;
     userHashList: IHashUser[];
-    authenticate(username: string | number, password: string, store: string | number, callback: (err?: Error) => void): void;
+    authenticate(username: string | number, password: string, callback: (err?: Error) => void): void;
     authCheck(username: string | number, password: string, store: string | number, callback: (err?: Error, result?: IToken) => void): void;
     decodeToken(token: string, options?: any): IParsedToken;
     clearToken();

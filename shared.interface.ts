@@ -71,7 +71,6 @@ export interface IAuthConfig {
 	hostURL: string;
 	clientId: string;
 	clientSecret: string;
-	storeNumber: number;
 }
 
 export interface IReceivingUser {

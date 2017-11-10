@@ -25,7 +25,6 @@
 
 .option {
 	flex: 0 0 6.3vmax;
-	background-color: var(--primary-dark);
 	width: 50vw;
 	border-bottom: 1px solid white;
 	font-size: 3vmax;

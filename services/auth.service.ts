@@ -1,6 +1,5 @@
 import { NetworkService } from './network.service';
 import { IToken, IReceivingUser, IHashUser, IErrorMessage, IGlobalError, IAuthConfig } from './../shared.interface';
-import { environment } from './../../../environments/environment';
 import { eErrorTypes } from './../shared.constants';
 import { Subject, Observable, Subscription } from 'rxjs/Rx';
 import { Injectable } from '@angular/core';
@@ -22,7 +21,6 @@ export class AuthService {
 	constructor(private _networkService: NetworkService) { }
 
 	public init(config: IAuthConfig, token?: string) {
-		this.storeNumber = config.storeNumber;
 		this._authModule = new FSDAuthentication(config, token);
 		if (token !== undefined) {
 			if (!this.expired) {
@@ -37,10 +35,10 @@ export class AuthService {
 		this.startRefreshMonitor();
 	}
 
-	public authenticate(username: string, password: string, store: number, callback?: (err: Error) => void) {
+	public authenticate(username: string, password: string, callback?: (err: Error) => void) {
 
 		if (this._networkService.online) {
-			this._authModule.authenticate(username, password, store, (err: Error) => {
+			this._authModule.authenticate(username, password, (err: Error) => {
 				if (err) {
 					this.checkAndHandleError(err);
 					if (callback !== undefined) {
