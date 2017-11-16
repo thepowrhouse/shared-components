@@ -139,13 +139,12 @@ var FSDAuthentication = (function () {
         enumerable: true,
         configurable: true
     });
-    FSDAuthentication.prototype.authenticate = function (username, password, store, callback) {
+    FSDAuthentication.prototype.authenticate = function (username, password, callback) {
         var _this = this;
         var params = {
             grant_type: 'password',
             username: username,
             password: password,
-            store: +store
         };
         var url = this._hostURL + "/" + this.tokenPath;
         this.sendRequest('POST', url, false, params, function (err, result) {
@@ -161,7 +160,7 @@ var FSDAuthentication = (function () {
             }
         });
     };
-    FSDAuthentication.prototype.refreshToken = function (store, callback) {
+    FSDAuthentication.prototype.refreshToken = function ( callback) {
         var _this = this;
         if (!this.token) {
             throw new Error('Cannot refresh. No token available');
@@ -169,7 +168,6 @@ var FSDAuthentication = (function () {
         var params = {
             grant_type: 'refresh_token',
             refresh_token: this.token.refresh_token,
-            store: store
         };
         var url = this._hostURL + "/" + this.tokenPath;
         console.log('Refreshing auth token');

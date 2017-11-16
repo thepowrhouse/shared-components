@@ -19,6 +19,10 @@ export class LoginComponent implements OnInit {
   }
 
   login() {
-    this.activeModal.dismiss();
+    this.activeModal.close({
+      action: 'Login',
+      userName: this.userName,
+      password: this.password
+    });
   }
 }
