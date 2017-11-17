@@ -3,7 +3,7 @@
 
 </div>
 <div class="modal-body">
-
+  <label *ngIf="errorMessage" class="alert alert-danger">{{errorMessage}}</label>
   <div class="form-group">
     <label >Username</label>
     <input type="text" class="form-control"  [(ngModel)]='userName' placeholder="Enter name">

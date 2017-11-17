@@ -3,4 +3,5 @@ export interface IHeaderItem {
   link:string;
   action:Function;
   type:string;
+  display:boolean
 }

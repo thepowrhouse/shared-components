@@ -116,7 +116,6 @@ export class AuthService {
 
 	public invalidateToken() {
 		if (this._authModule !== undefined) {
-			this._authModule.clearToken();
 			this._tokenSource.next(false);
 			this._refreshSub.unsubscribe();
 			this.startRefreshMonitor();

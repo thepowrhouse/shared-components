@@ -8,19 +8,30 @@
   <div class="collapse navbar-collapse" id="navbarSupportedContent" [ngbCollapse]="isCollapsed">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active" *ngFor='let item of filter(items, "Link")'>
-        <a class="nav-link" href="{{item.link}}">{{item.title}} <span class="sr-only">(current)</span></a>
+        <a class="nav-link" *ngIf="item.display" href="{{item.link}}">{{item.title}} <span
+          class="sr-only">(current)</span></a>
       </li>
     </ul>
-    <form *ngFor='let item of filter(items, "Search")' class="form-inline my-2 my-lg-0" #f="ngForm"
-          (ngSubmit)="item.action(f)">
-      <input class="form-control mr-sm-2" type="text" ngModel name="search" placeholder="Search">
-      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">{{item.title}}</button>
-    </form>
-    <form class="form-inline my-2 my-lg-0">
-      <button *ngFor='let item of filter(items, "Button")' class="btn btn-outline-success" type="button"
-              (click)="item.action()">
-        {{item.title}}
-      </button>
-    </form>
+
+    <ul class="navbar-nav right">
+      <li class="nav-item active" class="nav-item active mr-sm-2" *ngFor='let item of filter(items, "UserName")'>
+        <a *ngIf="item.display && item.title" class="nav-link">Hi {{item.title}}</a>
+      </li>
+      <li>
+        <form *ngFor='let item of filter(items, "Search")' class="form-inline my-2 my-lg-0" #f="ngForm"
+              (ngSubmit)="item.action(f)">
+          <input class="form-control mr-sm-2" *ngIf="item.display" type="text" ngModel name="search"
+                 placeholder="Search">
+          <button class="btn btn-outline-success my-2 my-sm-0 mr-sm-2" *ngIf="item.display" type="submit">{{item.title}}
+          </button>
+        </form>
+      </li>
+      <li *ngFor='let item of filter(items, "Button")' class="mr-sm-2">
+        <button class="btn btn-outline-success" *ngIf="item.display" type="button" (click)="item.action()">
+          {{item.title}}
+        </button>
+      </li>
+    </ul>
+
   </div>
 </nav>
