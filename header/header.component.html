@@ -3,13 +3,12 @@
           (click)="isCollapsed = !isCollapsed">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <a class="navbar-brand" href="#">{{title}}</a>
+  <a class="navbar-brand" (click)="clicked('/')">{{title}}</a>
 
   <div class="collapse navbar-collapse" id="navbarSupportedContent" [ngbCollapse]="isCollapsed">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active" *ngFor='let item of filter(items, "Link")'>
-        <a class="nav-link" *ngIf="item.display" href="{{item.link}}">{{item.title}} <span
-          class="sr-only">(current)</span></a>
+        <a class="nav-link" *ngIf="item.display" (click)="clicked(item.link)">{{item.title}} <span class="sr-only">(current)</span></a>
       </li>
     </ul>
 

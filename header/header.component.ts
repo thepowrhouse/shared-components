@@ -1,5 +1,7 @@
 import {Component, Input} from "@angular/core";
 import {IHeaderItem} from "./header-item";
+import {Router} from "@angular/router";
+
 
 @Component({
   selector: 'app-header',
@@ -7,6 +9,10 @@ import {IHeaderItem} from "./header-item";
   styleUrls: ['./header.component.css']
 })
 export class HeaderComponent {
+  constructor(private _router:Router) {
+
+  }
+
   public isCollapsed = true;
 
   @Input()
@@ -19,4 +25,7 @@ export class HeaderComponent {
     return items.filter(i=> i.type == type)
   }
 
+  clicked(link:string) {
+    this._router.navigate([link]);
+  }
 }

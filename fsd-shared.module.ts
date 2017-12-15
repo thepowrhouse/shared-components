@@ -16,37 +16,38 @@ import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 
 
 @NgModule({
-    declarations: [
-        OptionSelectComponent,
-        HeaderComponent,
-        FooterComponent,
-        LoginComponent
-    ],
-    imports: [
-        BrowserModule,
-        FormsModule,
-        HttpModule,
-        CommonModule,
-        FormsModule,
-        NgbModule.forRoot()
-    ],
-    exports: [
-        OptionSelectComponent,
-        HeaderComponent,
-        FooterComponent,
-        CommonModule,
-        FormsModule,
-    ],
-    providers: [
-        {provide: ErrorHandler, useClass: GlobalErrorHandler},
-        ToasterService,
-        NetworkService,
-        AuthService,
-        ErrorService
-    ],
-    entryComponents: [
-        LoginComponent
-    ]
+  declarations: [
+    OptionSelectComponent,
+    HeaderComponent,
+    FooterComponent,
+    LoginComponent
+  ],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    HttpModule,
+    CommonModule,
+    FormsModule,
+    NgbModule.forRoot()
+  ],
+  exports: [
+    OptionSelectComponent,
+    HeaderComponent,
+    FooterComponent,
+    CommonModule,
+    FormsModule,
+    HttpModule,
+  ],
+  providers: [
+    {provide: ErrorHandler, useClass: GlobalErrorHandler},
+    ToasterService,
+    NetworkService,
+    AuthService,
+    ErrorService
+  ],
+  entryComponents: [
+    LoginComponent
+  ]
 })
 
 export class FSDSharedModule {
