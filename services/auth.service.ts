@@ -1,209 +1,237 @@
-import { NetworkService } from './network.service';
-import { IToken, IReceivingUser, IHashUser, IErrorMessage, IGlobalError, IAuthConfig } from './../shared.interface';
-import { eErrorTypes } from './../shared.constants';
-import { Subject, Observable, Subscription } from 'rxjs/Rx';
-import { Injectable } from '@angular/core';
+import {NetworkService} from "./network.service";
+import {IToken, IReceivingUser, IHashUser, IGlobalError, IAuthConfig} from "./../shared.interface";
+import {eErrorTypes} from "./../shared.constants";
+import {Subject, Observable, Subscription} from "rxjs/Rx";
+import {Injectable} from "@angular/core";
+import {CookieService} from "ngx-cookie-service/index";
 
 
 @Injectable()
 export class AuthService {
 
-	public userName: string;
-	public storeNumber: number;
+  public userName:string;
+  public storeNumber:number;
 
-	private _authModule: FSDAuthentication;
+  private _authModule:FSDAuthentication;
 
-	private _tokenSource = new Subject<boolean>();
-	public tokenAvailable$ = this._tokenSource.asObservable();
+  private _tokenSource = new Subject<boolean>();
+  public tokenAvailable$ = this._tokenSource.asObservable();
 
-	private _refreshSub: Subscription;
+  private _refreshSub:Subscription;
 
-	constructor(private _networkService: NetworkService) { }
+  constructor(private _networkService:NetworkService, private cookieService:CookieService) {
+  }
 
-	public init(config: IAuthConfig, token?: string) {
-		this._authModule = new FSDAuthentication(config, token);
-		if (token !== undefined) {
-			if (!this.expired) {
-				this._tokenSource.next(true);
-			} else {
-				this.refreshAuth(this.storeNumber);
-			}
-		}
+  public init(config:IAuthConfig, token?:string) {
+    if (!token && this.cookieService.check('access_token')) {
+      let t = {
+        access_token: this.cookieService.get('access_token'),
+        refresh_token: this.cookieService.get('refresh_token'),
+        token_type: this.cookieService.get('token_type'),
+        expires_in: this.cookieService.get('expires_in'),
+      };
+      token = JSON.stringify(t);
+    }
 
-		console.log(this._authModule);
+    this._authModule = new FSDAuthentication(config, token);
+    if (token !== undefined) {
+      if (!this.expired) {
+        this._tokenSource.next(true);
+      } else {
+        this.refreshAuth(this.storeNumber);
+      }
+    }
 
-		this.startRefreshMonitor();
-	}
+    if (!this.userName && token) {
+      this.userName = this._authModule.decodeToken(token).user_name;
+    }
+    console.log(this._authModule);
 
-	public authenticate(username: string, password: string, callback?: (err: Error) => void) {
+    this.startRefreshMonitor();
+  }
 
-		if (this._networkService.online) {
-			this._authModule.authenticate(username, password, (err: Error) => {
-				if (err) {
-					this.checkAndHandleError(err);
-					if (callback !== undefined) {
-						callback(err);
-						return;
-					}
-				}
-				this.userName = username;
-				this._tokenSource.next(true);
+  public authenticate(username:string, password:string, callback?:(err:Error) => void) {
 
-				if (callback !== undefined) {
-					callback(undefined);
-				}
-			});
-		} else {
-			this._authModule.offlinePasswordCheck(username, password, (err: Error, result: boolean) => {
-				if (err) {
-					const errData = <IGlobalError>{
-						errorType: eErrorTypes.eAuthenticationError,
-						message: err.message
-					};
+    if (this._networkService.online) {
+      this._authModule.authenticate(username, password, (err:Error) => {
+        if (err) {
+          this.checkAndHandleError(err);
+          if (callback !== undefined) {
+            callback(err);
+            return;
+          }
+        }
+        this.userName = username;
+        this._tokenSource.next(true);
 
-					const error = new Error(JSON.stringify(errData));
-					if (callback !== undefined) {
-						callback(error);
-					} else {
-						throw error;
-					}
-				}
+        this.cookieService.set('access_token', this._authModule.token.access_token);
+        this.cookieService.set('refresh_token', this._authModule.token.refresh_token);
+        this.cookieService.set('token_type', this._authModule.token.token_type);
+        this.cookieService.set('expires_in', this._authModule.token.expires_in + "");
 
-				if (result) {
-					this.userName = username;
-					if (callback !== undefined) {
-						callback(undefined);
-					}
-				} else {
-					const errData = <IGlobalError>{
-						errorType: eErrorTypes.eAuthenticationError,
-						message: 'Password Invalid'
-					};
+        if (callback !== undefined) {
+          callback(undefined);
+        }
+      });
+    } else {
+      this._authModule.offlinePasswordCheck(username, password, (err:Error, result:boolean) => {
+        if (err) {
+          const errData = <IGlobalError>{
+            errorType: eErrorTypes.eAuthenticationError,
+            message: err.message
+          };
 
-					const error = new Error(JSON.stringify(errData));
-					if (callback !== undefined) {
-						callback(error);
-					} else {
-						throw error;
-					}
-				}
-			});
-		}
-	}
+          const error = new Error(JSON.stringify(errData));
+          if (callback !== undefined) {
+            callback(error);
+          } else {
+            throw error;
+          }
+        }
 
-	public refreshAuth(storeNumber: number) {
-		this._authModule.refreshToken(storeNumber, (err: Error) => {
-			this.checkAndHandleError(err, eErrorTypes.eAuthenticationExpiredError);
-			if (!err) {
-				this._tokenSource.next(true);
-			}
-		});
-	}
+        if (result) {
+          this.userName = username;
+          if (callback !== undefined) {
+            callback(undefined);
+          }
+        } else {
+          const errData = <IGlobalError>{
+            errorType: eErrorTypes.eAuthenticationError,
+            message: 'Password Invalid'
+          };
 
-	public updateUserList(callback: (err: Error, result?: IHashUser[]) => void) {
-		this._authModule.userList((err: Error, result?: IHashUser[]) => {
-			if (err) {
-				this.checkAndHandleError(err, eErrorTypes.eAuthenticationServiceError);
-				callback(err);
-				return;
-			}
+          const error = new Error(JSON.stringify(errData));
+          if (callback !== undefined) {
+            callback(error);
+          } else {
+            throw error;
+          }
+        }
+      });
+    }
+  }
 
-			this._authModule.userHashList = result;
+  public refreshAuth(storeNumber:number) {
+    this._authModule.refreshToken(storeNumber, (err:Error) => {
+      this.checkAndHandleError(err, eErrorTypes.eAuthenticationExpiredError);
+      if (!err) {
+        this._tokenSource.next(true);
+      }
+    });
+  }
 
-			callback(undefined, result);
-		});
-	}
+  public updateUserList(callback:(err:Error, result?:IHashUser[]) => void) {
+    this._authModule.userList((err:Error, result?:IHashUser[]) => {
+      if (err) {
+        this.checkAndHandleError(err, eErrorTypes.eAuthenticationServiceError);
+        callback(err);
+        return;
+      }
 
-	public invalidateToken() {
-		if (this._authModule !== undefined) {
-			this._tokenSource.next(false);
-			this._refreshSub.unsubscribe();
-			this.startRefreshMonitor();
-		}
-	}
+      this._authModule.userHashList = result;
 
-	public get currentToken(): IToken {
-		if (this._authModule !== undefined) {
-			return this._authModule.token;
-		}
-	}
+      callback(undefined, result);
+    });
+  }
 
-	public get currentUser(): IReceivingUser {
-		return <IReceivingUser>{
-			userName: this._authModule.access_token ? this._authModule.user_name : this.userName
-		};
-	}
+  public invalidateToken() {
+    if (this._authModule !== undefined) {
+      this._tokenSource.next(false);
+      this._refreshSub.unsubscribe();
+      this.startRefreshMonitor();
+    }
+  }
 
-	public get userList(): IHashUser[] {
-		return this._authModule.userHashList;
-	}
+  public get currentToken():IToken {
+    if (this._authModule !== undefined) {
+      return this._authModule.token;
+    }
+  }
 
-	public set userList(value: IHashUser[]) {
-		this._authModule.userHashList = value;
-	}
+  public get currentUser():IReceivingUser {
+    return <IReceivingUser>{
+      userName: this._authModule.access_token ? this._authModule.user_name : this.userName
+    };
+  }
 
-	public get expired(): boolean {
-		return this._authModule.expired;
-	}
+  public get userList():IHashUser[] {
+    return this._authModule.userHashList;
+  }
 
-	private startRefreshMonitor() {
+  public set userList(value:IHashUser[]) {
+    this._authModule.userHashList = value;
+  }
 
-		if (this._refreshSub) {
-			this._refreshSub.unsubscribe();
-		}
+  public get expired():boolean {
+    return this._authModule.expired;
+  }
 
-		this._refreshSub = Observable
-			.interval(500)
-			.skipUntil(this.tokenAvailable$)
-			.subscribe(() => {
-				if (this._authModule.expired) {
-					console.log('Refreshing auth token');
-					this._tokenSource.next(false);
-					this.refreshAuth(this.storeNumber);
+  private startRefreshMonitor() {
 
-					this.startRefreshMonitor();
-				}
-			});
-	}
+    if (this._refreshSub) {
+      this._refreshSub.unsubscribe();
+    }
 
-	private checkAndHandleError(err, errorType?: number) {
-		if (err) {
-			console.warn('Authentication Service Error', err);
-			let message;
-			let errorMessage;
-			try {
-				message = JSON.parse(err.message);
-			} catch (e) {
-				errorMessage = err.message;
-			}
+    this._refreshSub = Observable
+      .interval(500)
+      .skipUntil(this.tokenAvailable$)
+      .subscribe(() => {
+        if (this._authModule.expired) {
+          console.log('Refreshing auth token');
+          this._tokenSource.next(false);
+          this.refreshAuth(this.storeNumber);
+
+          this.startRefreshMonitor();
+        }
+      });
+  }
+
+  public logout() {
+    this.invalidateToken();
+    this.cookieService.delete("access_token");
+    this.cookieService.delete("refresh_token");
+    this.cookieService.delete("token_type");
+    this.cookieService.delete("expires_in");
+  }
+
+  private checkAndHandleError(err, errorType?:number) {
+    if (err) {
+      console.warn('Authentication Service Error', err);
+      let message;
+      let errorMessage;
+      try {
+        message = JSON.parse(err.message);
+      } catch (e) {
+        errorMessage = err.message;
+      }
 
 
-			if (errorType === undefined) {
-				switch (message.statusCode) {
-					case 0:
-						errorType = eErrorTypes.eAuthenticationServiceError;
-						errorMessage = 'No connection to authentication service';
-						break;
-					case 401:
-						errorType = eErrorTypes.eAuthenticationExpiredError;
-						break;
-					case 500:
-						errorType = eErrorTypes.eAuthenticationError;
-						errorMessage = 'Invalid username/password';
-						break;
-					default:
-						errorType = eErrorTypes.eAuthenticationServiceError;
-						errorMessage = message.serverResponse.error_description;
-				}
-			}
+      if (errorType === undefined) {
+        switch (message.statusCode) {
+          case 0:
+            errorType = eErrorTypes.eAuthenticationServiceError;
+            errorMessage = 'No connection to authentication service';
+            break;
+          case 401:
+            errorType = eErrorTypes.eAuthenticationExpiredError;
+            break;
+          case 500:
+            errorType = eErrorTypes.eAuthenticationError;
+            errorMessage = 'Invalid username/password';
+            break;
+          default:
+            errorType = eErrorTypes.eAuthenticationServiceError;
+            errorMessage = message.serverResponse.error_description;
+        }
+      }
 
-			const errData = <IGlobalError>{
-				errorType: errorType,
-				message: errorMessage
-			};
+      const errData = <IGlobalError>{
+        errorType: errorType,
+        message: errorMessage
+      };
 
-			throw new Error(JSON.stringify(errData));
-		}
-	}
+      throw new Error(JSON.stringify(errData));
+    }
+  }
 
 }

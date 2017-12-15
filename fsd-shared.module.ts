@@ -13,6 +13,7 @@ import {LoginComponent} from "./login/login.component";
 import {HeaderComponent} from "./header/header.component";
 import {FooterComponent} from "./footer/footer.component";
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+import {CookieService} from "ngx-cookie-service/index";
 
 
 @NgModule({
@@ -43,7 +44,8 @@ import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
     ToasterService,
     NetworkService,
     AuthService,
-    ErrorService
+    ErrorService,
+    CookieService
   ],
   entryComponents: [
     LoginComponent
